@@ -3,33 +3,44 @@
 
 uv_loop_t *loop;
 
+void print_addrinfo(struct addrinfo *addr, char *request_url) {
+	char buffer[16];
+
+	/// uv_ip4_name will put '\0' on tail.
+	uv_ip4_name((struct sockaddr_in *) addr->ai_addr, buffer, 16);
+
+	printf("\t%s -> %s (len: %ld)\n", request_url, buffer, strlen(buffer));
+}
+
 void on_address_resolved(
-	uv_getaddrinfo_t *req, int status, struct addrinfo *res
+	uv_getaddrinfo_t *req, int status, struct addrinfo *resolved_addr
 ) {
-	char addr[16];
+	struct addrinfo *cursor;
 
 	if (status < 0) {
 		fprintf(stderr, "** get_addrinfo: %s\n", uv_err_name(status));
 		return;
 	}
 
-	/// uv_ip4_name will put '\0' on tail.
-	uv_ip4_name((struct sockaddr_in *) res->ai_addr, addr, 16);
-	printf("address length: %ld\n", strlen(addr));
+	/// `resolved_addr` is just a copy of `req->addrinfo`
+	printf("resolved_addr: %p, req->addrinfo: %p\n", resolved_addr, req->addrinfo);
 
-	printf("%s -> %s\n", (char *) req->data, addr);
+	cursor = resolved_addr;
+	while (cursor) {
+		print_addrinfo(cursor, (char *) req->data);
+		cursor = cursor->ai_next;
+	}
 
-	/// `res` is just a copy of `req->addrinfo`
-	printf("\t(%p, %p)\n", res, req->addrinfo);
-
-	uv_freeaddrinfo(res);
+	uv_freeaddrinfo(resolved_addr);
 }
 
 int main(int argc, const char *argv) {
 	struct addrinfo address_info;
 	uv_getaddrinfo_t req;
-	int r;
 	char *host_to_query;
+	int r;
+
+	/// without address_info, you will get many resolved addresses
 
 	/*
 	address_info.ai_family = PF_INET;
