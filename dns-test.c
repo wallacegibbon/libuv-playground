@@ -14,7 +14,12 @@ void on_address_resolved(
 
 	uv_ip4_name((struct sockaddr_in *) res->ai_addr, addr, 16);
 
-	printf("--> %s\n", addr);
+	printf("%s -> %s\n", (char *) req->data, addr);
+
+	// `res` is just a copy of `req->addrinfo`
+	printf("\t(%p, %p)\n", res, req->addrinfo);
+
+	uv_freeaddrinfo(res);
 }
 
 int main(int argc, const char *argv) {
@@ -22,15 +27,24 @@ int main(int argc, const char *argv) {
 	uv_getaddrinfo_t req;
 	int r;
 
+	/*
 	address_info.ai_family = PF_INET;
 	address_info.ai_socktype = SOCK_STREAM;
 	address_info.ai_protocol = IPPROTO_TCP;
 	address_info.ai_flags = 0;
+	*/
 
 	loop = uv_default_loop();
 
+	/*
 	r = uv_getaddrinfo(
 		loop, &req, on_address_resolved, "gnu.org", NULL, &address_info
+	);
+	*/
+
+	req.data = "gnu.org";
+	r = uv_getaddrinfo(
+		loop, &req, on_address_resolved, "gnu.org", NULL, NULL
 	);
 
 	if (r) {
