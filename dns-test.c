@@ -26,6 +26,7 @@ int main(int argc, const char *argv) {
 	struct addrinfo address_info;
 	uv_getaddrinfo_t req;
 	int r;
+	char *host_to_query;
 
 	/*
 	address_info.ai_family = PF_INET;
@@ -36,15 +37,17 @@ int main(int argc, const char *argv) {
 
 	loop = uv_default_loop();
 
+	//host_to_query = "gnu.org";
+	host_to_query = "docker-builder";
+	req.data = host_to_query;
+
 	/*
 	r = uv_getaddrinfo(
-		loop, &req, on_address_resolved, "gnu.org", NULL, &address_info
+		loop, &req, on_address_resolved, host_to_query, NULL, &address_info
 	);
 	*/
-
-	req.data = "gnu.org";
 	r = uv_getaddrinfo(
-		loop, &req, on_address_resolved, "gnu.org", NULL, NULL
+		loop, &req, on_address_resolved, host_to_query, NULL, NULL
 	);
 
 	if (r) {
