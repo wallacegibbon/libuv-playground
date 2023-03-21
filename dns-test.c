@@ -1,22 +1,25 @@
 #include <uv.h>
+#include <string.h>
 
 uv_loop_t *loop;
 
 void on_address_resolved(
 	uv_getaddrinfo_t *req, int status, struct addrinfo *res
 ) {
-	char addr[17] = { 0 };
+	char addr[16];
 
 	if (status < 0) {
 		fprintf(stderr, "** get_addrinfo: %s\n", uv_err_name(status));
 		return;
 	}
 
+	/// uv_ip4_name will put '\0' on tail.
 	uv_ip4_name((struct sockaddr_in *) res->ai_addr, addr, 16);
+	printf("address length: %ld\n", strlen(addr));
 
 	printf("%s -> %s\n", (char *) req->data, addr);
 
-	// `res` is just a copy of `req->addrinfo`
+	/// `res` is just a copy of `req->addrinfo`
 	printf("\t(%p, %p)\n", res, req->addrinfo);
 
 	uv_freeaddrinfo(res);
@@ -37,8 +40,8 @@ int main(int argc, const char *argv) {
 
 	loop = uv_default_loop();
 
-	//host_to_query = "gnu.org";
-	host_to_query = "docker-builder";
+	host_to_query = "gnu.org";
+	//host_to_query = "docker-builder";
 	req.data = host_to_query;
 
 	/*
