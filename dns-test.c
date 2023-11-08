@@ -1,5 +1,5 @@
-#include <uv.h>
 #include <string.h>
+#include <uv.h>
 
 uv_loop_t *loop;
 
@@ -7,14 +7,12 @@ void print_addrinfo(struct addrinfo *addr, char *request_url) {
 	char buffer[16];
 
 	/// uv_ip4_name will put '\0' on tail.
-	uv_ip4_name((struct sockaddr_in *) addr->ai_addr, buffer, 16);
+	uv_ip4_name((struct sockaddr_in *)addr->ai_addr, buffer, 16);
 
 	printf("\t%s -> %s (len: %ld)\n", request_url, buffer, strlen(buffer));
 }
 
-void on_address_resolved(
-	uv_getaddrinfo_t *req, int status, struct addrinfo *resolved_addr
-) {
+void on_address_resolved(uv_getaddrinfo_t *req, int status, struct addrinfo *resolved_addr) {
 	struct addrinfo *cursor;
 
 	if (status < 0) {
@@ -27,7 +25,7 @@ void on_address_resolved(
 
 	cursor = resolved_addr;
 	while (cursor) {
-		print_addrinfo(cursor, (char *) req->data);
+		print_addrinfo(cursor, (char *)req->data);
 		cursor = cursor->ai_next;
 	}
 
@@ -52,17 +50,13 @@ int main(int argc, const char *argv) {
 	loop = uv_default_loop();
 
 	host_to_query = "gnu.org";
-	//host_to_query = "docker-builder";
+	// host_to_query = "docker-builder";
 	req.data = host_to_query;
 
 	/*
-	r = uv_getaddrinfo(
-		loop, &req, on_address_resolved, host_to_query, NULL, &address_info
-	);
+	r = uv_getaddrinfo(loop, &req, on_address_resolved, host_to_query, NULL, &address_info);
 	*/
-	r = uv_getaddrinfo(
-		loop, &req, on_address_resolved, host_to_query, NULL, NULL
-	);
+	r = uv_getaddrinfo(loop, &req, on_address_resolved, host_to_query, NULL, NULL);
 
 	if (r) {
 		fprintf(stderr, "** uv_getaddrinfo: %s\n", uv_err_name(r));
@@ -71,4 +65,3 @@ int main(int argc, const char *argv) {
 
 	return uv_run(loop, UV_RUN_DEFAULT);
 }
-
