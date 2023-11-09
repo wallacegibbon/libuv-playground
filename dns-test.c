@@ -1,3 +1,5 @@
+#include "common.h"
+#include <stdlib.h>
 #include <string.h>
 #include <uv.h>
 
@@ -47,21 +49,24 @@ int main(int argc, const char *argv) {
 	address_info.ai_flags = 0;
 	*/
 
+	/// According to the official document, the default loop can (and should) be closed with uv_loop_close()
+	/// so the resources associated with it are freed.
 	loop = uv_default_loop();
+	if (loop == NULL)
+		exit_info(-10, "failed getting default loop");
 
 	host_to_query = "gnu.org";
 	// host_to_query = "docker-builder";
 	req.data = host_to_query;
 
-	/*
-	r = uv_getaddrinfo(loop, &req, on_address_resolved, host_to_query, NULL, &address_info);
-	*/
+	// r = uv_getaddrinfo(loop, &req, on_address_resolved, host_to_query, NULL, &address_info);
 	r = uv_getaddrinfo(loop, &req, on_address_resolved, host_to_query, NULL, NULL);
 
-	if (r) {
-		fprintf(stderr, "** uv_getaddrinfo: %s\n", uv_err_name(r));
-		return 1;
-	}
+	if (r)
+		exit_info(-11, "** uv_getaddrinfo: %s\n", uv_err_name(r));
 
-	return uv_run(loop, UV_RUN_DEFAULT);
+	uv_run(loop, UV_RUN_DEFAULT);
+	uv_loop_close(loop);
+
+	return 0;
 }
